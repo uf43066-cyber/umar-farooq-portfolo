@@ -83,123 +83,129 @@ document.querySelectorAll('.card, .section-header, .skill-category, .service-car
     observer.observe(el);
 });
 
-// --- Voice Assistant ---
-const voiceBtn = document.getElementById('voice-btn');
-const voiceTooltip = document.querySelector('.voice-tooltip');
+// --- Typing Effect ---
+const typingText = document.querySelector('.typing-text');
+if (typingText) {
+    const words = ["Machine Learning Enthusiast", "Full Stack Web Developer", "NLP Specialist", "AI Student"];
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
 
-// Check browser support
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const synth = window.speechSynthesis;
-
-if (SpeechRecognition && voiceBtn) {
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-
-    let isListening = false;
-
-    function speak(text) {
-        // Stop any current speech
-        synth.cancel();
+    function type() {
+        const currentWord = words[wordIndex];
         
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        utterance.volume = 1;
-        
-        // Try to use a natural sounding voice if available
-        const voices = synth.getVoices();
-        const preferredVoice = voices.find(voice => voice.name.includes('Google US English') || voice.name.includes('Female'));
-        if (preferredVoice) {
-            utterance.voice = preferredVoice;
-        }
-        
-        synth.speak(utterance);
-    }
-
-    voiceBtn.addEventListener('click', () => {
-        if (isListening) {
-            recognition.stop();
+        if (isDeleting) {
+            typingText.textContent = currentWord.substring(0, charIndex - 1);
+            charIndex--;
         } else {
-            // Give user feedback that we are listening
-            speak("I am listening. How can I help?");
-            setTimeout(() => {
-                recognition.start();
-            }, 1500);
+            typingText.textContent = currentWord.substring(0, charIndex + 1);
+            charIndex++;
         }
-    });
 
-    recognition.onstart = () => {
-        isListening = true;
-        voiceBtn.classList.add('listening');
-        voiceTooltip.textContent = "Listening...";
-        voiceTooltip.style.opacity = '1';
-    };
+        let typeSpeed = isDeleting ? 50 : 100;
 
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        console.log("Heard:", transcript);
-        handleVoiceCommand(transcript);
-    };
+        if (!isDeleting && charIndex === currentWord.length) {
+            typeSpeed = 2000; // Pause at end of word
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            typeSpeed = 500; // Pause before typing next word
+        }
 
-    recognition.onspeechend = () => {
-        recognition.stop();
-    };
-
-    recognition.onend = () => {
-        isListening = false;
-        voiceBtn.classList.remove('listening');
-        voiceTooltip.textContent = "AI Assistant";
-        setTimeout(() => {
-            voiceTooltip.style.opacity = '';
-        }, 2000);
-    };
-
-    recognition.onerror = (event) => {
-        console.error("Speech recognition error", event.error);
-        speak("Sorry, I didn't catch that. Please try again.");
-    };
-
-    function handleVoiceCommand(command) {
-        if (command.includes('hello') || command.includes('hi')) {
-            speak("Hello! I am Umar Farooq's AI assistant. How can I help you today?");
-        } 
-        else if (command.includes('who') || command.includes('about')) {
-            speak("Umar Farooq is an Artificial Intelligence student at City University of Science and Information Technology, passionate about Machine Learning and NLP.");
-            document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
-        }
-        else if (command.includes('skill')) {
-            speak("Umar is highly skilled in Python, C, C++, Machine Learning, and Natural Language Processing.");
-            document.getElementById('skills').scrollIntoView({ behavior: 'smooth' });
-        }
-        else if (command.includes('project')) {
-            speak("Umar has worked on an NLP text preprocessing pipeline, a Naive Bayes classification model, and a multithreaded counter in C.");
-            document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });
-        }
-        else if (command.includes('contact') || command.includes('hire') || command.includes('whatsapp')) {
-            speak("You can contact Umar directly on WhatsApp. I will scroll you to the contact section now.");
-            document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
-        }
-        else if (command.includes('service') || command.includes('do')) {
-            speak("Umar offers services in Machine Learning projects, NLP applications, Python development, and data analysis.");
-            document.getElementById('services').scrollIntoView({ behavior: 'smooth' });
-        }
-        else if (command.includes('top') || command.includes('up')) {
-            speak("Going to the top of the page.");
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        else {
-            speak("I'm not sure how to respond to that. You can ask me about Umar's skills, projects, or how to contact him.");
-        }
+        setTimeout(type, typeSpeed);
     }
-} else if (voiceBtn) {
-    // Hide button if speech recognition is not supported
-    voiceBtn.style.display = 'none';
-    console.log("Speech Recognition API is not supported in this browser.");
+
+    setTimeout(type, 1000);
 }
 
-// Ensure voices are loaded (Chrome sometimes needs this)
-speechSynthesis.onvoiceschanged = () => {
-    // Voices are loaded
-};
+// --- Neural Network Background Animation ---
+const canvas = document.getElementById('neural-canvas');
+if (canvas) {
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let particles = [];
+    
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = document.getElementById('hero').offsetHeight;
+    }
+    
+    window.addEventListener('resize', resize);
+    resize();
+    
+    // Check theme for particle color
+    function getParticleColor() {
+        return document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(59, 130, 246, ' : 'rgba(96, 165, 250, ';
+    }
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 1.5;
+            this.vy = (Math.random() - 0.5) * 1.5;
+            this.radius = Math.random() * 2 + 1;
+        }
+        
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            
+            if (this.x < 0 || this.x > width) this.vx = -this.vx;
+            if (this.y < 0 || this.y > height) this.vy = -this.vy;
+        }
+        
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = getParticleColor() + '0.8)';
+            ctx.fill();
+        }
+    }
+    
+    // Create particles based on screen size
+    const particleCount = Math.min(Math.floor(window.innerWidth / 15), 100);
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        
+        const pColor = getParticleColor();
+        
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+            
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 120) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = pColor + (1 - distance / 120) * 0.5 + ')';
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    // Quick redraw when theme changes
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+        setTimeout(() => {
+            ctx.clearRect(0, 0, width, height);
+        }, 50);
+    });
+}
+
